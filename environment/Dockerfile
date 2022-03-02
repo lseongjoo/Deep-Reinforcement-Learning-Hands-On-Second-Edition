@@ -1,3 +1,11 @@
+FROM ubuntu:20.04 AS downloader
+RUN apt-get update && apt-get install -y wget unrar
+
+WORKDIR /tmp
+RUN wget http://www.atarimania.com/roms/Roms.rar && \
+    # extract files
+    unrar e Roms.rar Roms/
+
 FROM pytorch/pytorch:1.7.0-cuda11.0-cudnn8-runtime
 
 # Create non-root user
@@ -22,6 +30,13 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # [Optional] Set the default user. Omit if you want to keep the default as root.
 USER $USERNAME
 
+# Install additional dependencies
+RUN sudo apt-get update && sudo apt-get install -y python-opengl xvfb libglib2.0-0
+
 RUN sudo chown -R ${USER_UID}:${USER_GID} /opt/conda
 COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
+
+# Install atari_py ROMs
+COPY --from=downloader /tmp/Roms /tmp/Roms/
+RUN python -m atari_py.import_roms /tmp/Roms
