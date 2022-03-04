@@ -30,10 +30,12 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # [Optional] Set the default user. Omit if you want to keep the default as root.
 USER $USERNAME
 
-# Install additional dependencies
-RUN sudo apt-get update && sudo apt-get install -y python-opengl xvfb libglib2.0-0
-
+# conda directory permission set
 RUN sudo chown -R ${USER_UID}:${USER_GID} /opt/conda
+
+# Install additional dependencies
+RUN sudo apt-get update && sudo apt-get install -y python-opengl xvfb libglib2.0-0 ffmpeg
+
 COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 
